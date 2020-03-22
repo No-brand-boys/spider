@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 //@SpringBootApplication
 @EnableAutoConfiguration
-@ComponentScan({"com.zhangyu.*"})
+@ComponentScan({"com.example.*"})
 public class ServerApplication {
 
     public static void main(String[] args) {

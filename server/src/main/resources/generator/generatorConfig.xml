@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="generator" defaultModelType="flat" targetRuntime="MyBatis3">
+        <property name="autoDelimitKeywords" value="true"/>
+        <property name="javaFileEncoding" value="UTF-8"/>
+
+        <property name="beginningDelimiter" value="`"/>
+        <property name="endingDelimiter" value="`"/>
+
+        <commentGenerator>
+            <property name="suppressDate" value="true"/>
+            <property name="suppressAllComments" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection
+                driverClass="com.mysql.jdbc.Driver"
+                connectionURL="jdbc:mysql://127.0.0.1:3306/bid?serverTimezone=GMT"
+                userId="root"
+                password="m!ndblast">
+        </jdbcConnection>
+
+        <javaModelGenerator targetPackage="com.example.zy.dataobject" targetProject="src/main/java">
+            <property name="constructorBased" value="false"/>
+            <property name="enableSubPackages" value="false"/>
+            <property name="immutable" value="false"/>
+            <property name="trimStrings" value="false"/>
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="com.example.zy.mapper" targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <javaClientGenerator targetPackage="com.example.zy.dao" type="XMLMAPPER" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+
+        <!--        <table
+                        tableName="redpack"
+                        delimitIdentifiers="false"
+                        domainObjectName="RedPack"
+                        enableCountByExample="false"
+                        enableDeleteByExample="false"
+                        enableSelectByExample="false"
+                        enableUpdateByExample="false"
+                        selectByExampleQueryId="false"
+                >
+                    <property name="constructorBased" value="false"/>
+                </table>-->
+        <table
+                tableName="bid"
+                delimitIdentifiers="false"
+                domainObjectName="BidDO"
+                enableCountByExample="false"
+                enableUpdateByExample="false"
+                enableSelectByExample="false"
+                enableDeleteByExample="false"
+                selectByExampleQueryId="false"
+        >
+            <property name="constructorBased" value="false"/>
+            <generatedKey column="id" sqlStatement="JDBC"/>
+        </table>
+    </context>
+</generatorConfiguration>

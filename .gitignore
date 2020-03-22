@@ -1,5 +1,7 @@
-node_modules
-.idea
+node_modules/
+.idea/
 *.iml
-target
+target/
 package-lock.json
+
+.mvn
