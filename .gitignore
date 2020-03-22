@@ -5,3 +5,8 @@ target/
 package-lock.json
 
 .mvn
+mvnw
+mvnw.cmd
+
+*.png
+*.jpg

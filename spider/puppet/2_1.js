@@ -10,23 +10,23 @@ const fs = require('fs');
     page.setDefaultNavigationTimeout(180000);
     page.setDefaultTimeout(180000);
 
-   /* page.on('console', msg => {
-        console.log(msg.text());
-    });
+    /* page.on('console', msg => {
+         console.log(msg.text());
+     });
 
-    page.on('error', err => {
-        console.error(err.text());
-    }); */
+     page.on('error', err => {
+         console.error(err.text());
+     }); */
 
     page.on('load', () => {
         console.log("\n-------------------------------");
         console.log('page loaded\n');
     });
 
-    let json_data =[];//数据存储部分
+    let json_data = [];//数据存储部分
     let file = '.\\2_1.json';
     //页数295
-    for(let i=1; i<=295; i++) {
+    for (let i = 1; i <= 295; i++) {
         let url = "http://bid.norincogroup-ebuy.com/retrieve.do?typflag=1&pageNumber=" + i;
         await page.goto(url);
         let links = await page.evaluate(() => {
@@ -50,11 +50,13 @@ const fs = require('fs');
             let detail = await browser.newPage();
             await detail.goto(url);
             //await page.screenshot({path: '2_1.png'});
-            let src = await detail.evaluate(() => {return document.querySelector('#iframecontract').src});
-            let data= await detail.evaluate(() => {
+            let src = await detail.evaluate(() => {
+                return document.querySelector('#iframecontract').src
+            });
+            let data = await detail.evaluate(() => {
                 let data = {};
                 let regExp1 = /\d{4}[-/]\d{2}[-/]\d{2}/;
-                try{
+                try {
                     data.title = document.querySelector('.zbztb_filetit>h3').innerText.split(' ')[0];
                     let date = document.querySelector('.time').innerText;
                     data.release_time = date.match(regExp1)[0];
@@ -64,19 +66,19 @@ const fs = require('fs');
                     data.source_type = '企业';
                     data.status = 1;
                     data.bidding_uid = ''//网站无生成bidding_uid;
-                }catch (e) {
+                } catch (e) {
 
                 }
                 return data;
             });
             data.url = url;
             await detail.goto(src);
-            let body = await detail.evaluate(()=>{
+            let body = await detail.evaluate(() => {
                 let body;
-                try{
+                try {
                     body = document.querySelector('body').innerHTML;
-                    body = body.replace(/\s+/g,"");
-                }catch (e) {
+                    body = body.replace(/\s+/g, "");
+                } catch (e) {
 
                 }
                 return body;

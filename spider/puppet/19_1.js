@@ -4,7 +4,7 @@ var datas = [];
 
 (async () => {
     var pageNum = 1;
-    var url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index='+pageNum+'&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
+    var url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=' + pageNum + '&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
     const browser = await puppeteer.launch();
 
     do {
@@ -20,6 +20,7 @@ var datas = [];
         page.on('error', err => {
             console.error(err.text());
         });
+
         await page.goto(url);
         await page.screenshot({
             path: '20_1.png'
@@ -37,7 +38,7 @@ var datas = [];
         console.log(links);
         for (let i = 0; i < links.length; i++) {
             try {
-                let data = await getData(links[i],i);
+                let data = await getData(links[i], i);
                 datas.push(data);
                 console.log(data);
             } catch (e) {
@@ -45,7 +46,7 @@ var datas = [];
             }
         }
 
-        async function getData(url,i) {
+        async function getData(url, i) {
             let detail = await browser.newPage();
             detail.on('console', msg => {
                 console.log(msg.text());
@@ -55,12 +56,12 @@ var datas = [];
             });
             await detail.goto(url);
             await detail.screenshot({
-                path:i+'.png'
+                path: i + '.png'
             });
             let data = await detail.evaluate((url) => {
                 function parseTimeString(timeString) {
                     let timeNums = timeString.match(/(\d)+/g);
-                    if (timeNums !== null){
+                    if (timeNums !== null) {
                         let times = [];
                         for (let i = 0; i < 6; i++) {
                             if (typeof (timeNums[i]) !== "undefined") {
@@ -70,11 +71,11 @@ var datas = [];
                             }
                         }
                         return times[0] + '-' + times[1] + '-' + times[2] + ' ' + times[3] + ':' + times[4] + ':' + times[5];
-                    }else {
+                    } else {
                         return '';
                     }
-
                 }
+
                 let data = {};
                 let body = document.querySelector('.vF_detail_main').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
                 let qualification_requirements_pattern = /(?<=资格要求)([\S|\s])*(?=3.)/;
@@ -87,8 +88,8 @@ var datas = [];
                 let tender_amount = 0;
                 try {
                     let str = document.querySelector('table tbody').children[10].children[1].innerText.match(/[\d.]+/g)
-                    tender_amount = parseInt(str)*1000000;
-                }catch (e) {
+                    tender_amount = parseInt(str) * 1000000;
+                } catch (e) {
                     console.log('tender amount error');
                 }
                 try {
@@ -134,8 +135,9 @@ var datas = [];
             data.url = url;
             return data;
         }
+
         pageNum++;
-        url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index='+pageNum+'&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
+        url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=' + pageNum + '&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
     } while (pageNum < 2) ;
     browser.close();
     fs.writeFile("19_1.json", JSON.stringify(datas, null, '\t'), {flag: "w"}, function (err) {
