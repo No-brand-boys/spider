@@ -71,7 +71,7 @@ const fs = require('fs');
                     data.release_time =document.querySelector('tbody').innerText.split('\t')[1];
                     data.bidding_uid = document.querySelector('tbody').innerText.split('\t')[0];
                     data.puchaser = document.querySelectorAll('.MsoNormal')[3].innerText;
-                    data.winning_bidder = content.match(regExp1);
+                    data.winning_bidder = content.match(regExp1)[0];
                 }catch (e) {
                     console.log(e);
                 }
