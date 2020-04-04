@@ -1,16 +1,14 @@
 const puppeteer = require('puppeteer');
-var fs = require("fs");
-var datas = [];
-const PAGE_NUM = 3;
+let fs = require("fs");
+let datas = [];
+
+const PAGE_NUM = 100;
 (async () => {
-    var pageNum = 1;
-    var url = 'http://www.shenhuabidding.com.cn/bidweb/001/001006/'+pageNum+'.html';
+    let pageNum = 90;
+    let url = 'http://www.shenhuabidding.com.cn/bidweb/001/001006/' + pageNum + '.html';
     const browser = await puppeteer.launch();
     do {
         let page = await browser.newPage();
-        await page.addScriptTag({
-            url: "https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"
-        });
         page.setDefaultNavigationTimeout(180000);
         page.setDefaultTimeout(180000);
         page.on('console', msg => {
@@ -20,9 +18,7 @@ const PAGE_NUM = 3;
             console.error(err.text());
         });
         await page.goto(url);
-        await page.screenshot({
-            path: '14_1.png'
-        });
+
 
         let links = await page.evaluate(() => {
             let links = [];
@@ -36,9 +32,9 @@ const PAGE_NUM = 3;
         console.log(links);
         for (let i = 0; i < links.length; i++) {
             try {
-                let data = await getData(links[i],i);
+                let data = await getData(links[i], i);
                 datas.push(data);
-                console.log(data);
+                console.log(data)
             } catch (e) {
                 console.log(e);
             }
@@ -58,7 +54,7 @@ const PAGE_NUM = 3;
                 function parseTimeString(timeString) {
                     let timeNums = timeString.match(/(\d)+/g);
                     let timeStr = '';
-                    if (timeNums !== null){
+                    if (timeNums !== null) {
                         let times = [];
                         for (let i = 0; i < 5; i++) {
                             if (typeof (timeNums[i]) !== "undefined") {
@@ -68,17 +64,16 @@ const PAGE_NUM = 3;
                             }
                         }
                         timeStr = times[0] + '-' + times[1] + '-' + times[2] + ' ' + times[3] + ':' + times[4] + ':' + '00';
-                        if (!isNaN(new Date(timeStr).getTime())){
+                        if (!isNaN(new Date(timeStr).getTime())) {
                             return timeStr;
                         } else {
                             return '';
                         }
-                    }else {
+                    } else {
                         return '';
                     }
                 }
 
-                //传一个包含
                 function parseTenderAmountStr(tenderAmountStr) {
                     let tender_amount = 0;
                     try {
@@ -95,64 +90,53 @@ const PAGE_NUM = 3;
                 }
 
                 let data = {};
+                let bodyWithoutScript = document.querySelector('.article-info').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
                 let body = document.querySelector('.article-info').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
-                let purchaser_pattern =/(?<=受)(\s|\S)*(?=的委托)/;
+                let purchaser_pattern = /(?<=受)(\s|\S)*(?=的委托)/;
                 let purchaser = '';
                 let tender_amount = 0;
                 let purchasing_area = '';
                 let winning_bidder = '';
-                let startTimeString ='';
-                let endTimeString ='';
-                let  purchasing_area_str='';
-                try {
+                let startTimeString = '';
+                let endTimeString = '';
+                let purchasing_area_str = '';
+
+                if (tender_amount_pattern.exec(body) != null) {
                     let str = tender_amount_pattern.exec(body)[0];
                     tender_amount = parseTenderAmountStr(str);
-                } catch (e) {
-                    console.log('tender_amount error')
                 }
-                try {
-                    winning_bidder = document.querySelector('table tbody').children[1].children[2].innerText;
-                } catch (e) {
-                    console.log('winner_bidding error')
-                }
-                try {
+                if (document.querySelector('.con table tr:last-child td:last-child') != null)
+                    winning_bidder = document.querySelector('.con table tr:last-child td:last-child').innerText;
+                if (purchaser_pattern.exec(body) != null)
                     purchaser = purchaser_pattern.exec(body)[0];
-                } catch (e) {
-                    console.log('purchaser error');
-                }
-                finally {
-                    data.type = true;
-                    data.bidding_uid = '';
-                    data.winning_bidder = winning_bidder;
-                    data.purchaser = purchaser;
-                    data.title = document.querySelector('strong').innerText;
-                    data.body = body;
-                    data.source = '国家能源招标网';
-                    data.source_type = '企业';
-                    data.information_type = '中标公告';
-                    data.status = 1;
-                    //todo  页面没有字段
-                    data.tender_amount = tender_amount;
-                    //todo  页面没有字段
-                    data.tender_acquisition_start_date = parseTimeString(startTimeString);
-                    //todo  页面没有字段
-                    data.tender_acquisition_end_date = parseTimeString(endTimeString);
-                    //todo  页面没有字段
-                    data.purchasing_area = purchasing_area;
-                    data.region_type_id = '';
-                    //todo  页面没有字段
-                    data.qualification_requirements = purchasing_area_str;
-                    return data;
-                }
+
+                data.type = true;
+                data.bidding_uid = '';
+                data.winning_bidder = winning_bidder;
+                data.purchaser = purchaser;
+                data.title = document.querySelector('strong').innerText;
+                data.release_time = parseTimeString(document.querySelector('.info-sources').innerText);
+                data.body = bodyWithoutScript;
+                data.source = '国家能源招标网';
+                data.source_type = '企业';
+                data.status = 1;
+                data.tender_amount = tender_amount;
+                data.tender_acquisition_start_date = parseTimeString(startTimeString);
+                data.tender_acquisition_end_date = parseTimeString(endTimeString);
+                data.purchasing_area = purchasing_area;
+                data.region_type_id = '';
+                data.qualification_requirements = purchasing_area_str;
+                return data;
             });
             data.url = url;
             return data;
         }
+
         pageNum++;
-        url = 'http://www.shenhuabidding.com.cn/bidweb/001/001006/'+pageNum+'.html';
+        url = 'http://www.shenhuabidding.com.cn/bidweb/001/001006/' + pageNum + '.html';
     } while (pageNum < PAGE_NUM) ;
     browser.close();
-    fs.writeFile("14_2.json", JSON.stringify(datas, null, '\t'), {flag: "w"}, function (err) {
+    fs.writeFile("14_2.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
         if (err) {
             return console.log(err);
         } else {

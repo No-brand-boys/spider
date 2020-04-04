@@ -1,54 +1,55 @@
 const puppeteer = require('puppeteer');
-var fs = require("fs");
-var datas = [];
+let fs = require("fs");
+let datas = [];
 //todo 更改要爬取的总页面数
-const PAGE_NUM = 3;
+const PAGE_NUM = 100;
 (async () => {
-    var pageNum = 1;
-    var url = 'https://dzzb.ciesco.com.cn/gg/ggList';
+    let pageNum = 95;
     const browser = await puppeteer.launch();
-    let page = await browser.newPage();
-    await page.goto(url);
-    await page.screenshot({
-        path:'15_1.png'
-    });
-    page.setDefaultNavigationTimeout(180000);
-    page.setDefaultTimeout(180000);
-    page.on('console', msg => {
-        console.log(msg.text());
-    });
-    page.on('error', err => {
-        console.error(err.text());
-    });
-    await page.addScriptTag({
-        url: "https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"
-    });
+    let url = 'https://dzzb.ciesco.com.cn/gg/ggList?currentPage=' + pageNum;
     do {
-        await page.screenshot({
-            path: pageNum + '.png'
+        let page = await browser.newPage();
+        await page.goto(url);
+        page.setDefaultNavigationTimeout(180000);
+        page.setDefaultTimeout(180000);
+        page.on('console', msg => {
+            console.log(msg.text());
         });
+        page.on('error', err => {
+            console.error(err.text());
+        });
+
         let links = await page.evaluate(() => {
             let links = [];
-            let list = document.querySelector('table tbody').children;
+            let list = [];
+            try {
+                list = document.querySelector('table tbody').children
+            } catch (e) {
 
+            }
             for (let i = 2; i < list.length; i++) {
-                let link = list[i].children[2].querySelector('a');
-                console.log(222);
-                links.push(link.href);
+                try {
+                    let link = list[i].children[2].querySelector('a');
+                    links.push(link.href);
+                } catch (e) {
+                    console.log('link error')
+                }
             }
             return links;
         });
+
         console.log(links);
 
         for (let i = 0; i < links.length; i++) {
             try {
                 let data = await getData(links[i]);
                 datas.push(data);
-                console.log(data);
+                console.log(data)
             } catch (e) {
                 console.log(e);
             }
         }
+
         async function getData(url) {
             let detail = await browser.newPage();
             detail.on('console', msg => {
@@ -84,6 +85,7 @@ const PAGE_NUM = 3;
                 }
 
                 let data = {};
+                let bodyWithoutScript = document.querySelector('html').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
                 let body = document.querySelector('.template').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
                 let startTimeString = '';
                 let endTimeString = '';
@@ -91,62 +93,45 @@ const PAGE_NUM = 3;
                 let purchaser = '';
                 let qualification_requirements = '';
                 let tender_amount = 0;
-                try {
-                    let allRows = document.querySelector('.template-three table tbody').children;
-                    qualification_requirements = allRows[allRows.length - 1].children[1].innerHTML;
-                } catch (e) {
-                    console.log()
-                }
-                try {
-                    startTimeString = document.querySelector('.template-five table tbody').children[1].children[1].innerText;
-                } catch (e) {
-                    console.log('startTime error');
-                }
-                try {
-                    endTimeString = document.querySelector('.template-five table tbody').children[3].children[1].innerText;
-                } catch (e) {
-                    console.log('endTime error');
-                }
-                try {
-                    purchasing_area_str = '';
-                } catch (e) {
-                    console.log('purchasing_area_str error');
-                }
-                try {
-                    purchaser = document.querySelector('.template-two table tbody').children[0].children[1].innerText;
-                } catch (e) {
-                    console.log('purchaser error');
-                }
-                finally {
-                    data.type = false;  //招标是false
-                    data.bidding_type = '';
-                    data.bidding_uid = '';
-                    data.body = body;
-                    data.title = document.querySelector('.title').innerText;
-                    data.purchaser = purchaser;
-                    data.release_time = parseTimeString(document.querySelector('table tbody').children[4].children[1].innerText);
-                    data.source = '招商局';
-                    data.source_type = '企业';
-                    data.status = 1;
-                    data.tender_amount = tender_amount;
-                    data.tender_acquisition_start_date = parseTimeString(startTimeString);
-                    data.tender_acquisition_end_date = parseTimeString(endTimeString);
-                    //todo 页面没有明显字段
-                    data.purchasing_area = purchasing_area_str;
-                    data.region_type_id = '';
-                    data.qualification_requirements = qualification_requirements;
-                    return data;
-                }
+                let release_time = '';
+
+                if (document.querySelector('.template-one table tbody tr:nth-child(5) td:nth-child(2)') != null)
+                    release_time = parseTimeString(document.querySelector('.template-one table tbody tr:nth-child(5) td:nth-child(2)').innerText);
+                if (document.querySelector('.template-three table tbody tr:last-child td') != null)
+                    qualification_requirements = document.querySelector('.template-three table tbody tr:last-child td').innerHTML.replace(/<[^>]+>/g, "");
+                if (document.querySelector('.template-five table tbody tr:nth-child(2) td') != null)
+                    startTimeString = document.querySelector('.template-five table tbody tr:nth-child(2) td').innerText;
+                if (document.querySelector('.template-five table tbody tr:nth-child(2) td:nth-child(4)') != null)
+                    endTimeString = document.querySelector('.template-five table tbody tr:nth-child(2) td:nth-child(4)').innerText;
+                if (document.querySelector('.template-two table tbody tr td') != null)
+                    purchaser = document.querySelector('.template-two table tbody tr td').innerText;
+
+                data.type = false;  //招标是false'
+                data.bidding_uid = '';
+                data.body = bodyWithoutScript;
+                data.title = document.querySelector('.title').innerText;
+                data.purchaser = purchaser;
+                data.release_time = release_time;
+                data.source = '招商局';
+                data.source_type = '企业';
+                data.status = 1;
+                data.tender_amount = tender_amount;
+                data.tender_acquisition_start_date = parseTimeString(startTimeString);
+                data.tender_acquisition_end_date = parseTimeString(endTimeString);
+                data.purchasing_area = purchasing_area_str;
+                data.region_type_id = '';
+                data.qualification_requirements = qualification_requirements;
+                return data;
             });
             data.url = url;
             return data;
         }
 
-        await page.click('.next-ye');
         pageNum++;
+        url = 'https://dzzb.ciesco.com.cn/gg/ggList?currentPage=' + pageNum;
     } while (pageNum < PAGE_NUM) ;
     browser.close();
-    fs.writeFile("15_1.json", JSON.stringify(datas, null, '\t'), {flag: "w"}, function (err) {
+    fs.writeFile("15_1.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
         if (err) {
             return console.log(err);
         } else {

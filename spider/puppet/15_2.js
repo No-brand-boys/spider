@@ -1,31 +1,23 @@
 const puppeteer = require('puppeteer');
-var fs = require("fs");
-var datas = [];
+let fs = require("fs");
+let datas = [];
 //todo 更改要爬取的总页面数
-const PAGE_NUM = 3;
+const PAGE_NUM = 45;
 (async () => {
-    var pageNum = 1;
-    var url = 'https://dzzb.ciesco.com.cn/gg/zbgsList';
+    let pageNum = 40;
+    let url = 'https://dzzb.ciesco.com.cn/gg/zbgsList?currentPage=' + pageNum;
     const browser = await puppeteer.launch();
-    let page = await browser.newPage();
-    await page.goto(url);
-    await page.screenshot({
-        path:'15_2.png'
-    });
-    page.setDefaultNavigationTimeout(180000);
-    page.setDefaultTimeout(180000);
-    page.on('console', msg => {
-        console.log(msg.text());
-    });
-    page.on('error', err => {
-        console.error(err.text());
-    });
-    await page.addScriptTag({
-        url: "https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"
-    });
+
     do {
-        await page.screenshot({
-            path: pageNum + '.png'
+        let page = await browser.newPage();
+        await page.goto(url);
+        page.setDefaultNavigationTimeout(180000);
+        page.setDefaultTimeout(180000);
+        page.on('console', msg => {
+            console.log(msg.text());
+        });
+        page.on('error', err => {
+            console.error(err.text());
         });
         let links = await page.evaluate(() => {
             let links = [];
@@ -33,22 +25,39 @@ const PAGE_NUM = 3;
 
             for (let i = 2; i < list.length; i++) {
                 let link = list[i].children[2].querySelector('a');
-                console.log(222);
                 links.push(link.href);
             }
             return links;
         });
+        let times = await page.evaluate(() => {
+            let times = [];
+            let list = [];
+            if (document.querySelector('table tbody') != null)
+                list = document.querySelector('table tbody').children;
+            for (let i = 2; i < list.length; i++) {
+                try {
+                    let time = list[i].children[4].innerText;
+                    times.push(time);
+                } catch (e) {
+                    console.log('time error')
+                }
+            }
+            return times;
+        });
+
         console.log(links);
 
         for (let i = 0; i < links.length; i++) {
             try {
                 let data = await getData(links[i]);
+                data.release_time = times[i];
                 datas.push(data);
                 console.log(data);
             } catch (e) {
                 console.log(e);
             }
         }
+
         async function getData(url) {
             let detail = await browser.newPage();
             detail.on('console', msg => {
@@ -63,7 +72,7 @@ const PAGE_NUM = 3;
                 function parseTimeString(timeString) {
                     let timeNums = timeString.match(/(\d)+/g);
                     let timeStr = '';
-                    if (timeNums !== null){
+                    if (timeNums !== null) {
                         let times = [];
                         for (let i = 0; i < 5; i++) {
                             if (typeof (timeNums[i]) !== "undefined") {
@@ -73,17 +82,16 @@ const PAGE_NUM = 3;
                             }
                         }
                         timeStr = times[0] + '-' + times[1] + '-' + times[2] + ' ' + times[3] + ':' + times[4] + ':' + '00';
-                        if (!isNaN(new Date(timeStr).getTime())){
+                        if (!isNaN(new Date(timeStr).getTime())) {
                             return timeStr;
                         } else {
                             return '';
                         }
-                    }else {
+                    } else {
                         return '';
                     }
                 }
 
-                //传一个包含
                 function parseTenderAmountStr(tenderAmountStr) {
                     let tender_amount = 0;
                     try {
@@ -100,6 +108,7 @@ const PAGE_NUM = 3;
                 }
 
                 let data = {};
+                let bodyWithoutScript = document.querySelector('html').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
                 let body = document.querySelector('.template').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
                 let startTimeString = '';
                 let endTimeString = '';
@@ -108,73 +117,46 @@ const PAGE_NUM = 3;
                 let tender_amount = 0;
                 let purchasing_area = '';
                 let winning_bidder = '';
-                try {
-                    purchaser = document.querySelector('.template-one table tbody').children[0].children[3].innerText;
-                }catch (e) {
-                    console.log('purchaser error')
-                }
-                try {
-                    let str = document.querySelector('.template-two table tbody').children[1].children[1].innerText;
-                    tender_amount = parseTenderAmountStr(str);
-                } catch (e) {
-                    console.log('tender_amount error')
-                }
-                try {
-                    winning_bidder = document.querySelector('.template-two table tbody').children[0].children[1].innerText;
-                } catch (e) {
-                    console.log('winner_bidding error')
-                }
-                try {
-                    startTimeString = '';
-                } catch (e) {
-                    console.log('startTime error');
-                }
-                try {
-                    endTimeString = '';
-                } catch (e) {
-                    console.log('endTime error');
-                }
-                try {
-                    purchasing_area_str = '';
-                } catch (e) {
-                    console.log('purchasing_area_str error');
-                }
 
-                finally {
-                    data.type = true;
-                    data.bidding_uid = '';
-                    data.winning_bidder = winning_bidder;
-                    data.purchaser = purchaser;
-                    data.title = document.querySelector('.title').innerText;
-                    data.body = body;
-                    data.source = '招商局';
-                    data.source_type = '企业';
-                    data.information_type = '中标公告';
-                    data.status = 1;
-                    data.tender_amount = tender_amount;
-                    //todo  页面没有字段
-                    data.tender_acquisition_start_date = parseTimeString(startTimeString);
-                    //todo  页面没有字段
-                    data.tender_acquisition_end_date = parseTimeString(endTimeString);
-                    //todo  页面没有字段
-                    data.purchasing_area = purchasing_area;
-                    data.region_type_id = '';
-                    //todo  页面没有字段
-                    data.qualification_requirements = purchasing_area_str;
-                    return data;
+                if (document.querySelector('.template-one tr:nth-child(2) td') != null)
+                    purchaser = document.querySelector('.template-one tr:nth-child(2) td').innerText;
+                if (document.querySelector('.template-two table tbody tr:nth-child(2) td') != null) {
+                    let str = document.querySelector('.template-two table tbody tr:nth-child(2) td').innerText;
+                    tender_amount = parseTenderAmountStr(str);
                 }
+                if (document.querySelector('.template-two table tbody tr:nth-child(1) td') != null)
+                    winning_bidder = document.querySelector('.template-two table tbody tr:nth-child(1) td').innerText;
+
+                data.type = true;
+                data.bidding_uid = '';
+                data.winning_bidder = winning_bidder;
+                data.purchaser = purchaser;
+                data.title = document.querySelector('.title').innerText;
+                data.body = bodyWithoutScript;
+                data.source = '招商局';
+                data.source_type = '企业';
+                data.status = 1;
+                data.tender_amount = tender_amount;
+                data.tender_acquisition_start_date = parseTimeString(startTimeString);
+                data.tender_acquisition_end_date = parseTimeString(endTimeString);
+                data.purchasing_area = purchasing_area;
+                data.region_type_id = '';
+                data.qualification_requirements = purchasing_area_str;
+                return data;
             });
             data.url = url;
             return data;
         }
 
-        await page.click('.next-ye');
         pageNum++;
+        url = 'https://dzzb.ciesco.com.cn/gg/zbgsList?currentPage=' + pageNum;
     } while (pageNum < PAGE_NUM) ;
+
     browser.close();
-    fs.writeFile("15_2.json", JSON.stringify(datas, null, '\t'), {flag: "w"}, function (err) {
+
+    fs.writeFile("15_2.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
         if (err) {
-            return console.log(err);
+            console.log(err);
         } else {
             console.log("写入成功");
         }

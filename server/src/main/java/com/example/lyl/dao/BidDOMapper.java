@@ -1,6 +1,6 @@
-package com.example.zy.dao;
+package com.example.lyl.dao;
 
-import com.example.zy.dataobject.BidDO;
+import com.example.lyl.dataobject.BidDO;
 
 public interface BidDOMapper {
     int deleteByPrimaryKey(Integer id);

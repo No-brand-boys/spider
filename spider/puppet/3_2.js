@@ -1,54 +1,45 @@
 const puppeteer = require('puppeteer');
-let fs = require("fs");
-let datas = [];
-const PAGE_NUM = 80;
+var fs = require("fs");
+var datas = [];
+var PAGE_NUM = 17;
 (async () => {
-    let pageNum = 70;
-    let url = 'http://thzb.crsc.cn/g2625/m6044/mp' + pageNum + '.aspx';
+    let pageNum = 1;
     const browser = await puppeteer.launch();
+    let page = await browser.newPage();
+    page.setDefaultNavigationTimeout(180000);
+    page.setDefaultTimeout(180000);
+    page.on('console', msg => {
+        console.log(msg.text());
+    });
+
+    page.on('error', err => {
+        console.error(err.text());
+    });
+    let url = 'http://bidding.ceiec.com.cn/zbgs/index.jhtml';
 
     do {
-        let page = await browser.newPage();
-        page.setDefaultNavigationTimeout(180000);
-        page.setDefaultTimeout(180000);
-        page.on('console', msg => {
-            console.log(msg.text());
-        });
-        page.on('error', err => {
-            console.error(err.text());
-        });
         await page.goto(url);
-
         let links = await page.evaluate(() => {
             let links = [];
-            let list = document.querySelectorAll('.second-lb-module-module .second-lb-item');
+            let list = document.querySelector('.bidlist ul').children;
             for (let i = 0; i < list.length; i++) {
                 let link = list[i].querySelector('a');
                 links.push(link.href);
             }
             return links;
         });
-        console.log(links);
+
         for (let i = 0; i < links.length; i++) {
-            try {
-                let data = await getData(links[i]);
-                datas.push(data);
-                console.log(data)
-            } catch (e) {
-                console.log(e);
-            }
+            let data = await getData(links[i]);
+            datas.push(data);
+            console.log(data);
         }
 
-        async function getData(url, i) {
+        async function getData(link) {
             let detail = await browser.newPage();
-            await detail.goto(url);
-            detail.on('console', msg => {
-                console.log(msg.text());
-            });
-            detail.on('error', err => {
-                console.error(err.text());
-            });
-            let data = await detail.evaluate(() => {
+
+            await detail.goto(link);
+            let data = await detail.evaluate((url) => {
                 function parseTimeString(timeString) {
                     let timeNums = timeString.match(/(\d)+/g);
                     let timeStr = '';
@@ -71,48 +62,48 @@ const PAGE_NUM = 80;
                         return '';
                     }
                 }
-
                 let data = {};
-                let bodyWithoutScript = document.querySelector('#Content').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-                let body = document.querySelector('#Content').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
-                let startTimeString = '';
-                let endTimeString = '';
+                let bodyWithoutScript = document.querySelector('html').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                let body = document.querySelector('.main-text').innerText;
+                let purchaser_pattern = /(?<=招标人名称：)(\S)*/;
+                let winning_bidder_pattern = /(?<=中标候选人排名如下：)(\S|\s)*(?=联系机构：)/;
                 let purchaser = '';
+                let tender_amount = 0;
                 let winning_bidder = '';
-
+                if (winning_bidder_pattern.exec(body)!=null){
+                    winning_bidder = winning_bidder_pattern.exec(body)[0];
+                }
+                if (purchaser_pattern.exec(body)!=null) {
+                    purchaser = purchaser_pattern.exec(body)[0];
+                }
                 data.type = true;
                 data.bidding_uid = '';
                 data.winning_bidder = winning_bidder;
                 data.purchaser = purchaser;
-                data.release_time = document.querySelector('#PublishTime').innerText;
-                data.title = document.querySelector('#Title').innerText;
+                data.title = document.querySelector('.article-title').innerText;
+                data.release_time = parseTimeString(document.querySelector('.article-author').innerText);
                 data.body = bodyWithoutScript;
-                data.source = '中国通号';
+                data.source = '中国电子进出口有限公司招标采购网';
                 data.source_type = '企业';
                 data.status = 1;
-                data.tender_amount = 0;
-                data.tender_acquisition_start_date = startTimeString;
-                data.tender_acquisition_end_date = endTimeString;
+                data.tender_amount = tender_amount;
+                data.tender_acquisition_start_date = '';
+                data.tender_acquisition_end_date = '';
                 data.purchasing_area = '';
                 data.region_type_id = '';
                 data.qualification_requirements = '';
                 return data;
             });
-
-            data.url = url;
+            data.url = link;
             return data;
         }
-
         pageNum++;
-        url = 'http://thzb.crsc.cn/g2625/m6044/mp' + pageNum + '.aspx';
-
+        url = 'http://bidding.ceiec.com.cn/zbgs/index_' + pageNum + '.jhtml'
     } while (pageNum < PAGE_NUM) ;
-
     browser.close();
-
-    fs.writeFile("20_2.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
+    fs.writeFile("3_2.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
         if (err) {
-            console.log(err);
+            return console.log(err);
         } else {
             console.log("写入成功");
         }

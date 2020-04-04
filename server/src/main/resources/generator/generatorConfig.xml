@@ -16,24 +16,24 @@
         </commentGenerator>
 
         <jdbcConnection
-                driverClass="com.mysql.jdbc.Driver"
+                driverClass="com.mysql.cj.jdbc.Driver"
                 connectionURL="jdbc:mysql://127.0.0.1:3306/bid?serverTimezone=GMT"
                 userId="root"
-                password="m!ndblast">
+                password="123456">
         </jdbcConnection>
 
-        <javaModelGenerator targetPackage="com.example.zy.dataobject" targetProject="src/main/java">
+        <javaModelGenerator targetPackage="com.example.lyl.dataobject" targetProject="src/main/java">
             <property name="constructorBased" value="false"/>
             <property name="enableSubPackages" value="false"/>
             <property name="immutable" value="false"/>
             <property name="trimStrings" value="false"/>
         </javaModelGenerator>
 
-        <sqlMapGenerator targetPackage="com.example.zy.mapper" targetProject="src/main/resources">
+        <sqlMapGenerator targetPackage="com.example.lyl.mapper" targetProject="src/main/resources">
             <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
 
-        <javaClientGenerator targetPackage="com.example.zy.dao" type="XMLMAPPER" targetProject="src/main/java">
+        <javaClientGenerator targetPackage="com.example.lyl.dao" type="XMLMAPPER" targetProject="src/main/java">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
 
