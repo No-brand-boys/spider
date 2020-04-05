@@ -1,10 +1,10 @@
 const puppeteer = require('puppeteer');
-var fs = require("fs");
-var datas = [];
+let fs = require("fs");
+let datas = [];
 
 (async () => {
-    var pageNum = 1;
-    var url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=' + pageNum + '&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
+    let pageNum = 1;
+    let url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=' + pageNum + '&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
     const browser = await puppeteer.launch();
 
     do {

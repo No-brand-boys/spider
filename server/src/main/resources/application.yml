@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/bid?serverTimezone=GMT
+    username: root
+    password: m!ndblast
+mybatis:
+  mapper-locations: classpath:com/example/zy/mapper/*.xml
+server:
+  port: 9001

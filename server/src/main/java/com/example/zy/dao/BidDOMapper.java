@@ -2,6 +2,8 @@ package com.example.zy.dao;
 
 import com.example.zy.dataobject.BidDO;
 
+import java.util.List;
+
 public interface BidDOMapper {
     int deleteByPrimaryKey(Integer id);
 
@@ -16,4 +18,6 @@ public interface BidDOMapper {
     int updateByPrimaryKeyWithBLOBs(BidDO record);
 
     int updateByPrimaryKey(BidDO record);
+
+    int batchInsert(List<BidDO> records);
 }
