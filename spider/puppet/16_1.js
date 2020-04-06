@@ -1,11 +1,11 @@
 const puppeteer = require('puppeteer');
-var fs = require("fs");
-var datas = [];
+let fs = require("fs");
+let datas = [];
 //todo 更改要爬取的总页面数
 const PAGE_NUM = 35;
 (async () => {
-    var pageNum = 1;
-    var url = 'https://www.chdtp.com.cn/webs/queryWebZbgg.action?page.currentpage='+pageNum;
+    let pageNum = 30;
+    let url = 'https://www.chdtp.com.cn/webs/queryWebZbgg.action?page.currentpage=' + pageNum;
     const browser = await puppeteer.launch();
     let page = await browser.newPage();
     do {
@@ -17,9 +17,6 @@ const PAGE_NUM = 35;
         });
         page.on('error', err => {
             console.error(err.text());
-        });
-        await page.screenshot({
-            path: pageNum + '.png'
         });
         let links = await page.evaluate(() => {
             let links = [];
@@ -65,12 +62,6 @@ const PAGE_NUM = 35;
                 console.error(err.text());
             });
             await detail.goto(url);
-            await page.addScriptTag({
-                url: "https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"
-            });
-            await detail.screenshot({
-                path: 'detail.png'
-            });
             let data = await detail.evaluate(() => {
                 function parseTimeString(timeString) {
                     let timeNums = timeString.match(/(\d)+/g);
@@ -94,7 +85,9 @@ const PAGE_NUM = 35;
                         return '';
                     }
                 }
+
                 let data = {};
+                let bodyWithoutScript = document.querySelector('.Basic_information').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
                 let body = document.querySelector('.Basic_information').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
                 let qualification_requirements_pattern = /(?<=(三、投标人资格要求))(\S|\s)*(?=四、)/;
                 let startTimeString = '';
@@ -103,63 +96,43 @@ const PAGE_NUM = 35;
                 let purchaser = '';
                 let qualification_requirements = '';
                 let tender_amount = 0;
-                try {
+
+                if (qualification_requirements_pattern.exec(body) != null)
                     qualification_requirements = qualification_requirements_pattern.exec(body)[0];
-                } catch (e) {
-                    console.log('qualification_requirements error');
-                }
-                try {
-                    startTimeString = $('a[name="BL_000006_20180511172611"]')[0].innerText;
-                    console.log(startTimeString)
-                } catch (e) {
-                    console.log('startTime error');
-                }
-                try {
-                    endTimeString = $('a[name="BL_000155_20180401134245"]')[0].innerText;
-                    console.log(endTimeString)
-                } catch (e) {
-                    console.log('endTime error');
-                }
-                try {
-                    purchasing_area_str = '';
-                } catch (e) {
-                    console.log('purchasing_area_str error');
-                }
-                try {
-                    purchaser = $('a[name="BL_000001_20180323170055"]')[0].innerText;
-                    console.log(purchaser)
-                } catch (e) {
-                    console.log('purchaser error');
-                }
-                finally {
-                    data.type = false;  //招标是false
-                    data.bidding_type = '';
-                    data.bidding_uid = '';
-                    data.body = body;
-                    data.title = document.querySelector('.headline').innerText;
-                    data.purchaser = purchaser;
-                    data.source = '华电集团电子商务平台';
-                    data.source_type = '企业';
-                    data.status = 1;
-                    data.tender_amount = tender_amount;
-                    data.tender_acquisition_start_date = parseTimeString(startTimeString);
-                    data.tender_acquisition_end_date = parseTimeString(endTimeString);
-                    data.purchasing_area = purchasing_area_str;   //// 页面没有明显字段
-                    data.region_type_id = '';
-                    data.qualification_requirements = qualification_requirements;
-                    return data;
-                }
+                if (document.querySelector('a[name="BL_000006_20180511172611"]') != null)
+                    startTimeString = document.querySelector('a[name="BL_000006_20180511172611"]').innerText;
+                if (document.querySelector('a[name="BL_000155_20180401134245"]') != null)
+                    endTimeString = document.querySelector('a[name="BL_000155_20180401134245"]').innerText;
+                if (purchaser = document.querySelector('a[name="BL_000001_20180323170055"]') != null)
+                    purchaser = document.querySelector('a[name="BL_000001_20180323170055"]').innerText;
+
+                data.type = false;  //招标是false
+                data.bidding_uid = '';
+                data.body = bodyWithoutScript;
+                data.title = document.querySelector('.headline').innerText;
+                data.purchaser = purchaser;
+                data.source = '华电集团电子商务平台';
+                data.source_type = '企业';
+                data.status = 1;
+                data.tender_amount = tender_amount;
+                data.tender_acquisition_start_date = parseTimeString(startTimeString);
+                data.tender_acquisition_end_date = parseTimeString(endTimeString);
+                data.purchasing_area = purchasing_area_str;
+                data.region_type_id = '';
+                data.qualification_requirements = qualification_requirements;
+                return data;
             });
             data.url = url;
             return data;
         }
+
         pageNum++;
         url = 'https://www.chdtp.com.cn/webs/queryWebZbgg.action?page.currentpage=' + pageNum;
     } while (pageNum < PAGE_NUM) ;
     browser.close();
     fs.writeFile("16_1.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
         if (err) {
-            return console.log(err);
+            console.log(err);
         } else {
             console.log("写入成功");
         }
