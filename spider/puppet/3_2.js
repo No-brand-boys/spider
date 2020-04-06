@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
-var fs = require("fs");
-var datas = [];
-var PAGE_NUM = 17;
+let fs = require("fs");
+let datas = [];
+let PAGE_NUM = 17;
 (async () => {
     let pageNum = 1;
     const browser = await puppeteer.launch();
