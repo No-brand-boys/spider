@@ -3,7 +3,7 @@
 <mapper namespace="com.example.zy.dao.BidDOMapper">
   <resultMap id="BaseResultMap" type="com.example.zy.dataobject.BidDO">
     <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="type" jdbcType="BIT" property="type" />
     <result column="bidding_uid" jdbcType="VARCHAR" property="biddingUid" />
     <result column="purchaser" jdbcType="VARCHAR" property="purchaser" />
     <result column="title" jdbcType="VARCHAR" property="title" />
@@ -50,7 +50,7 @@
       tender_acquisition_end_date, purchasing_area, 
       region_type_id, qualification_requirements, 
       body)
-    values (#{type,jdbcType=INTEGER}, #{biddingUid,jdbcType=VARCHAR}, #{purchaser,jdbcType=VARCHAR}, 
+    values (#{type,jdbcType=BIT}, #{biddingUid,jdbcType=VARCHAR}, #{purchaser,jdbcType=VARCHAR}, 
       #{title,jdbcType=VARCHAR}, #{releaseTime,jdbcType=TIMESTAMP}, #{url,jdbcType=VARCHAR}, 
       #{source,jdbcType=VARCHAR}, #{sourceType,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{tenderAmount,jdbcType=INTEGER}, #{tenderAcquisitionStartDate,jdbcType=TIMESTAMP}, 
@@ -112,7 +112,7 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="type != null">
-        #{type,jdbcType=INTEGER},
+        #{type,jdbcType=BIT},
       </if>
       <if test="biddingUid != null">
         #{biddingUid,jdbcType=VARCHAR},
@@ -165,7 +165,7 @@
     update bid
     <set>
       <if test="type != null">
-        `type` = #{type,jdbcType=INTEGER},
+        `type` = #{type,jdbcType=BIT},
       </if>
       <if test="biddingUid != null">
         bidding_uid = #{biddingUid,jdbcType=VARCHAR},
@@ -217,7 +217,7 @@
   </update>
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.example.zy.dataobject.BidDO">
     update bid
-    set `type` = #{type,jdbcType=INTEGER},
+    set `type` = #{type,jdbcType=BIT},
       bidding_uid = #{biddingUid,jdbcType=VARCHAR},
       purchaser = #{purchaser,jdbcType=VARCHAR},
       title = #{title,jdbcType=VARCHAR},
@@ -237,7 +237,7 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.example.zy.dataobject.BidDO">
     update bid
-    set `type` = #{type,jdbcType=INTEGER},
+    set `type` = #{type,jdbcType=BIT},
       bidding_uid = #{biddingUid,jdbcType=VARCHAR},
       purchaser = #{purchaser,jdbcType=VARCHAR},
       title = #{title,jdbcType=VARCHAR},
@@ -254,4 +254,13 @@
       qualification_requirements = #{qualificationRequirements,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
+  <insert id="batchInsert" parameterType="java.util.List">
+    insert into bid (type, bidding_uid, purchaser, title, release_time, body, url, source, source_type, status, tender_amount, tender_acquisition_start_date, tender_acquisition_end_date, purchasing_area, region_type_id, qualification_requirements)
+    VALUES
+    <foreach collection="list" item="item" index="index" separator=",">
+      (#{item.type}, #{item.biddingUid}, #{item.purchaser}, #{item.title}, #{item.releaseTime}, #{item.body}, #{item.url},
+      #{item.source}, #{item.sourceType}, #{item.status}, #{item.tenderAmount}, #{item.tenderAcquisitionStartDate}, #{item.tenderAcquisitionEndDate},
+      #{item.purchasingArea}, #{item.regionTypeId}, #{item.qualificationRequirements})
+    </foreach>
+  </insert>
 </mapper>

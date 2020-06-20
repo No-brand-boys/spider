@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.lyl.dao.BidDOMapper">
-  <resultMap id="BaseResultMap" type="com.example.lyl.dataobject.BidDO">
+<mapper namespace="com.example.zy.dao.BidDOMapper">
+  <resultMap id="BaseResultMap" type="com.example.zy.dataobject.BidDO">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="type" jdbcType="INTEGER" property="type" />
     <result column="bidding_uid" jdbcType="VARCHAR" property="biddingUid" />
@@ -19,7 +19,7 @@
     <result column="region_type_id" jdbcType="VARCHAR" property="regionTypeId" />
     <result column="qualification_requirements" jdbcType="VARCHAR" property="qualificationRequirements" />
   </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.example.lyl.dataobject.BidDO">
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.example.zy.dataobject.BidDO">
     <result column="body" jdbcType="LONGVARCHAR" property="body" />
   </resultMap>
   <sql id="Base_Column_List">
@@ -42,7 +42,7 @@
     delete from bid
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.example.lyl.dataobject.BidDO" useGeneratedKeys="true">
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.example.zy.dataobject.BidDO" useGeneratedKeys="true">
     insert into bid (`type`, bidding_uid, purchaser, 
       title, release_time, url, 
       `source`, source_type, `status`, 
@@ -58,7 +58,7 @@
       #{regionTypeId,jdbcType=VARCHAR}, #{qualificationRequirements,jdbcType=VARCHAR}, 
       #{body,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.example.lyl.dataobject.BidDO" useGeneratedKeys="true">
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.example.zy.dataobject.BidDO" useGeneratedKeys="true">
     insert into bid
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="type != null">
@@ -161,7 +161,7 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.example.lyl.dataobject.BidDO">
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.zy.dataobject.BidDO">
     update bid
     <set>
       <if test="type != null">
@@ -215,7 +215,7 @@
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.example.lyl.dataobject.BidDO">
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.example.zy.dataobject.BidDO">
     update bid
     set `type` = #{type,jdbcType=INTEGER},
       bidding_uid = #{biddingUid,jdbcType=VARCHAR},
@@ -235,7 +235,7 @@
       body = #{body,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.example.lyl.dataobject.BidDO">
+  <update id="updateByPrimaryKey" parameterType="com.example.zy.dataobject.BidDO">
     update bid
     set `type` = #{type,jdbcType=INTEGER},
       bidding_uid = #{biddingUid,jdbcType=VARCHAR},
@@ -254,7 +254,7 @@
       qualification_requirements = #{qualificationRequirements,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <resultMap id="BaseResultMap" type="com.example.lyl.dataobject.BidDO">
+  <resultMap id="BaseResultMap" type="com.example.zy.dataobject.BidDO">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="type" jdbcType="INTEGER" property="type" />
     <result column="bidding_uid" jdbcType="VARCHAR" property="biddingUid" />
@@ -272,7 +272,7 @@
     <result column="region_type_id" jdbcType="VARCHAR" property="regionTypeId" />
     <result column="qualification_requirements" jdbcType="VARCHAR" property="qualificationRequirements" />
   </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.example.lyl.dataobject.BidDO">
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.example.zy.dataobject.BidDO">
     <result column="body" jdbcType="LONGVARCHAR" property="body" />
   </resultMap>
   <sql id="Base_Column_List">
@@ -295,7 +295,7 @@
     delete from bid
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.example.lyl.dataobject.BidDO" useGeneratedKeys="true">
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.example.zy.dataobject.BidDO" useGeneratedKeys="true">
     insert into bid (`type`, bidding_uid, purchaser, 
       title, release_time, url, 
       `source`, source_type, `status`, 
@@ -311,7 +311,7 @@
       #{regionTypeId,jdbcType=VARCHAR}, #{qualificationRequirements,jdbcType=VARCHAR}, 
       #{body,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.example.lyl.dataobject.BidDO" useGeneratedKeys="true">
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.example.zy.dataobject.BidDO" useGeneratedKeys="true">
     insert into bid
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="type != null">
@@ -414,7 +414,7 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.example.lyl.dataobject.BidDO">
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.zy.dataobject.BidDO">
     update bid
     <set>
       <if test="type != null">
@@ -468,7 +468,7 @@
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.example.lyl.dataobject.BidDO">
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.example.zy.dataobject.BidDO">
     update bid
     set `type` = #{type,jdbcType=INTEGER},
       bidding_uid = #{biddingUid,jdbcType=VARCHAR},
@@ -488,7 +488,7 @@
       body = #{body,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.example.lyl.dataobject.BidDO">
+  <update id="updateByPrimaryKey" parameterType="com.example.zy.dataobject.BidDO">
     update bid
     set `type` = #{type,jdbcType=INTEGER},
       bidding_uid = #{biddingUid,jdbcType=VARCHAR},

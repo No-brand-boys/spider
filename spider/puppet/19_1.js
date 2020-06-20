@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 let fs = require("fs");
 let datas = [];
+
 let PAGE_NUM = 100;
 (async () => {
     let pageNum = 90;

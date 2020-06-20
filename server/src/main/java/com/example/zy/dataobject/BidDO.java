@@ -1,11 +1,11 @@
-package com.example.lyl.dataobject;
+package com.example.zy.dataobject;
 
 import java.util.Date;
 
 public class BidDO {
     private Integer id;
 
-    private Integer type;
+    private Boolean type;
 
     private String biddingUid;
 
@@ -45,11 +45,11 @@ public class BidDO {
         this.id = id;
     }
 
-    public Integer getType() {
+    public Boolean getType() {
         return type;
     }
 
-    public void setType(Integer type) {
+    public void setType(Boolean type) {
         this.type = type;
     }
 
