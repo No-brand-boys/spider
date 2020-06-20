@@ -1,0 +1,13 @@
+node_modules/
+.idea/
+*.iml
+target/
+
+.mvn
+mvnw
+mvnw.cmd
+
+*.png
+*.jpg
+
+/spider/*.json

@@ -1,13 +1,11 @@
 const puppeteer = require('puppeteer');
 let fs = require("fs");
 let datas = [];
-
-let PAGE_NUM = 100;
+const PAGE_NUM = 100;
 (async () => {
     let pageNum = 90;
-    let url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=' + pageNum + '&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A06&end_time=2020%3A03%3A13&timeType=2&displayZone=&zoneId=&pppStatus=0&agentName='
+    let url = 'http://www.shenhuabidding.com.cn/bidweb/001/001002/' + pageNum + '.html';
     const browser = await puppeteer.launch();
-
     do {
         let page = await browser.newPage();
         page.setDefaultNavigationTimeout(180000);
@@ -22,16 +20,14 @@ let PAGE_NUM = 100;
 
         let links = await page.evaluate(() => {
             let links = [];
-            let list = document.querySelector('.vT-srch-result-list-bid').children;
+            let list = document.querySelector('.right-items').children;
             for (let i = 0; i < list.length; i++) {
                 let link = list[i].querySelector('a');
                 links.push(link.href);
             }
             return links;
         });
-
         console.log(links);
-
         for (let i = 0; i < links.length; i++) {
             try {
                 let data = await getData(links[i], i);
@@ -52,59 +48,54 @@ let PAGE_NUM = 100;
             });
             await detail.goto(url);
 
-            let data = await detail.evaluate((url) => {
+            let data = await detail.evaluate(() => {
                 function parseTimeString(timeString) {
                     let timeNums = timeString.match(/(\d)+/g);
+                    let timeStr = '';
                     if (timeNums !== null) {
                         let times = [];
-                        for (let i = 0; i < 6; i++) {
+                        for (let i = 0; i < 5; i++) {
                             if (typeof (timeNums[i]) !== "undefined") {
                                 times[i] = timeNums[i];
                             } else {
                                 times[i] = '00';
                             }
                         }
-                        return times[0] + '-' + times[1] + '-' + times[2] + ' ' + times[3] + ':' + times[4] + ':' + times[5];
+                        timeStr = times[0] + '-' + times[1] + '-' + times[2] + ' ' + times[3] + ':' + times[4] + ':' + '00';
+                        if (!isNaN(new Date(timeStr).getTime())) {
+                            return timeStr;
+                        } else {
+                            return '';
+                        }
                     } else {
                         return '';
                     }
                 }
-
                 let data = {};
-                let bodyWithoutScript = document.querySelector('.vF_detail_main').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-                let body = document.querySelector('.vF_detail_main').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
-
+                let bodyWithoutScript = document.querySelector('.article-info').innerHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                let body = document.querySelector('.article-info').innerHTML.replace(/<\/?.+?\/?>/g, '').replace(/&nbsp;/g, '');
+                let qualification_requirements_pattern = /(3.投标人资格要求)([\S|\s])*(?=4.招标文件的获取)/;
+                let purchaser_pattern = /((招[ ]*标[ ]*(人[ ]*|单[ ]*位[ ]*)*)|(联[ ]*系[ ]*方[ ]*法[ ]*)|(采[ ]*购[ ]*(人[ ]*|单[ ]*位[ ]*)*))(联[ ]*系[ ]*方[ ]*式：[ ]*)*(名[ ]*称)*(：)(\s*)(\S)*(公司|中心|局|部|协会|院|学)/;
+                let startTimeString_pattern = /(招标文件购买时间：)(\s|\S)*(分至)/;
+                let endTimeString_pattern = /(开[ ]*标[ ]*时[ ]*间[ ]*)(\S)*((：)|(为))(\s|\S)*(（北京时间)/;
                 let startTimeString = '';
                 let endTimeString = '';
                 let purchasing_area_str = '';
                 let purchaser = '';
                 let qualification_requirements = '';
                 let tender_amount = 0;
-
-                if (document.querySelector('table tbody tr:nth-child(6) td:nth-child(2)')!=null) {
-                    let startTimeAndEndTime = document.querySelector('table tbody tr:nth-child(6) td:nth-child(2)').innerText.split('至');
-                    if (startTimeAndEndTime.length>=2) {
-                        startTimeString = startTimeAndEndTime[0];
-                        endTimeString = startTimeAndEndTime[1];
-                    }
-                }
-                if (document.querySelector('table tbody tr:nth-child(11) td:nth-child(2)') != null) {
-                    let str = document.querySelector('table tbody tr:nth-child(11) td:nth-child(2)').innerText.match(/[\d.]+/g);
-                    tender_amount = parseInt(str) * 1000000;
-                }
-                if (document.querySelector('table tbody tr:nth-child(5) td:nth-child(2)') != null)
-                    purchasing_area_str = document.querySelector('table tbody tr:nth-child(5) td:nth-child(2)').innerText;
-                if (document.querySelector('table tbody tr:nth-child(4) td:nth-child(2)') != null)
-                    purchaser = document.querySelector('table tbody tr:nth-child(4) td:nth-child(2)').innerText;
-
+                if (qualification_requirements_pattern.exec(body) != null) qualification_requirements = qualification_requirements_pattern.exec(body)[0];
+                if (purchaser_pattern.exec(body) != null) purchaser = purchaser_pattern.exec(body)[0];
+                if (startTimeString_pattern.exec(body) != null) startTimeString = startTimeString_pattern.exec(body)[0];
+                if (endTimeString_pattern.exec(body) != null) endTimeString = endTimeString_pattern.exec(body)[0];
                 data.type = false;  //招标是false
                 data.bidding_uid = '';
                 data.body = bodyWithoutScript;
-                data.title = document.querySelector('.vF_detail_header h2').innerText;
+                data.title = document.querySelector('#title').innerText;
                 data.purchaser = purchaser;
-                data.release_time = parseTimeString(document.querySelector('#pubTime').innerText);
-                data.source = '中国政府采购网';
-                data.source_type = '政府';
+                data.release_time = parseTimeString(document.querySelector('.info-sources').innerText);
+                data.source = '国家能源招标网';
+                data.source_type = '企业';
                 data.status = 1;
                 data.tender_amount = tender_amount;
                 data.tender_acquisition_start_date = parseTimeString(startTimeString);
@@ -113,21 +104,18 @@ let PAGE_NUM = 100;
                 data.region_type_id = '';
                 data.qualification_requirements = qualification_requirements;
                 return data;
-
             });
             data.url = url;
             return data;
         }
 
         pageNum++;
-        url = 'http://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=' + pageNum + '&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=1&dbselect=bidx&kw=&start_time=2020%3A03%3A04&end_time=2020%3A03%3A07&timeType=1&displayZone=&zoneId=&pppStatus=0&agentName='
+        url = 'http://www.shenhuabidding.com.cn/bidweb/001/001002/' + pageNum + '.html';
     } while (pageNum < PAGE_NUM) ;
-
     browser.close();
-
-    fs.writeFile("19_1.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
+    fs.writeFile("14_1.json", JSON.stringify(datas, null, '\t'), {flag: "a"}, function (err) {
         if (err) {
-            console.log(err);
+            return console.log(err);
         } else {
             console.log("写入成功");
         }
